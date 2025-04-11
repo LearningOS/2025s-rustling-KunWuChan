@@ -3,18 +3,24 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
 use std::cmp::Ordering;
 use std::fmt::Debug;
+use std::thread::sleep_ms;
 
+/*
+二叉搜索树：
+    每个节点的左子树所有值都小于该节点的值。
+    每个节点的右子树所有值都大于该节点的值。
+    左右子树也必须是二叉搜索树。
+*/ 
 
 #[derive(Debug)]
-struct TreeNode<T>
+struct TreeNode<T> //树节点
 where
     T: Ord,
 {
     value: T,
-    left: Option<Box<TreeNode<T>>>,
+    left: Option<Box<TreeNode<T>>>, //使用Box管理堆内存
     right: Option<Box<TreeNode<T>>>,
 }
 
@@ -49,15 +55,18 @@ where
     }
 
     // Insert a value into the BST
+    // 如果为空，则创建，否则找到value的区间【左节点，右节点】 插入
     fn insert(&mut self, value: T) {
-        //TODO
+        match self.root {
+            None => self.root = Some(Box::new(TreeNode::new(value))),
+            Some(ref mut node) => node.insert(value),
+        }
+        
     }
 
     // Search for a value in the BST
     fn search(&self, value: T) -> bool {
-        //TODO
-        true
-    }
+        self.root.as_ref().map_or(false, |node| node.search(&value))
 }
 
 impl<T> TreeNode<T>
@@ -66,7 +75,31 @@ where
 {
     // Insert a node into the tree
     fn insert(&mut self, value: T) {
-        //TODO
+        match value.cmp(&self.value) {
+            Ordering::Equal => {} //不重复插入
+            Ordering::Less => {//小于，左子树
+                if self.left.is_none() {
+                    self.left = Some(Box::new(TreeNode::new(value))); // Option  Box TreeNode
+                } else {
+                    self.left.as_mut().unwrap().insert(value); //因为要修改左子树
+                }
+            }
+            Ordering::Greater => {
+                if self.right.is_none() {
+                    self.right = Some(Box::new(TreeNode::new(value))); // Option  Box TreeNode
+                } else {
+                    self.right.as_mut().unwrap().insert(value);
+                }
+            }
+        }
+    }
+
+    fn search(&self, value: &T) -> bool  {
+        match value.cmp(&self.value) {
+            Ordering::Equal => true,
+            Ordering::Less => self.left.as_ref().map_or(false, |node| node.search(value)),
+            Ordering::Greater => self.right.as_ref().map_or(false, |node| node.search(value)),
+        }
     }
 }
 
